@@ -21,16 +21,18 @@ RUN set -xe \
 # --- 调试步骤 2: 强制更新软件包列表并安装 git ---
 # 这一步专门用于确保 git 及其核心依赖被安装。
 # 我们会在这里安装 git，并清理 apt 缓存，以便后续步骤可以依赖 git。
+# 尝试修复缺失的索引
 RUN set -xe \
-    apt-get update --fix-missing \ # 尝试修复缺失的索引
+    apt-get update --fix-missing \
     && apt-get install -y --no-install-recommends git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # --- 调试步骤 3: 安装 MPD 及编译 myMPD 所需的其他依赖 ---
 # 现在 git 已经安装好了，这里安装其他编译工具和库。
+# 再次更新，确保其他包的最新信息
 RUN set -xe \
-    apt-get update \ # 再次更新，确保其他包的最新信息
+    apt-get update \
     && apt-get install -y --no-install-recommends \
         mpd \
         mpc \
