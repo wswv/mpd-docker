@@ -58,6 +58,9 @@ RUN set -xe \
 RUN set -xe \
     # 重新 apt-get update，以防长时间未构建导致软件包信息过旧
     apt-get update \
+    # 防御性安装：确保 git 在此 RUN 层中肯定可用，即使上一步骤存在缓存或 PATH 问题。
+    && apt-get install -y --no-install-recommends git \
+    \    
     && git clone https://github.com/jcorporation/myMPD.git /tmp/myMPD \
     && cd /tmp/myMPD \
     && cmake -DCMAKE_BUILD_TYPE=Release . \
