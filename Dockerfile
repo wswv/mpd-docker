@@ -20,15 +20,10 @@ RUN set -xe \
 
 # --- 调试步骤 2: 强制更新软件包列表并安装 git ---
 # 这一步专门用于确保 git 及其核心依赖被安装。
-# 我们会在这里安装 git，并清理 apt 缓存，以便后续步骤可以依赖 git。
-
 RUN set -xe \
     echo "--- Starting apt-get update for git ---" \
     && apt-get update --fix-missing \
-    # 尝试修复缺失的索引
     && echo "--- apt-get update for git finished ---" \
-    \
-    # 增加调试信息，查看 sources.list 内容
     && echo "--- /etc/apt/sources.list content ---" \
     && cat /etc/apt/sources.list \
     && echo "--- /etc/apt/sources.list.d/ content ---" \
