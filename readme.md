@@ -54,7 +54,7 @@ audio_output {
 
 # Add other settings like mixer, replaygain, etc.
 
-
+```
 
 ### docker-compose.yml
 
@@ -88,3 +88,5 @@ services:
     # Optional: If you need to access specific host devices (e.g., sound card)
     # devices:
     #   - /dev/snd:/dev/snd # Uncomment and adjust if you need direct audio hardware access
+
+```
