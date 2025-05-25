@@ -62,7 +62,8 @@ jobs:
             linux/arm64
             linux/arm/v7
             linux/arm/v6
-            linux/mips64le
+            linux/riscv64
+          #linux/mips64le
           push: ${{ github.event_name == 'push' }} # 只有在 push 事件时才推送镜像
           tags: ${{ steps.meta.outputs.tags }} # 使用上一步生成的标签
           labels: ${{ steps.meta.outputs.labels }} # 使用上一步生成的标签
