@@ -1,6 +1,6 @@
 ## Introduction
 This docker image fork from https://github.com/vimagick/dockerfiles/blob/master/mpd/Dockerfile, by the help of Gemini AI.
-Here the new fork purpose to add more platform support, like Raspberry pi, riscv64, and privilege control.
+Here the new fork purpose to add more platform support, like Raspberry pi, mips, and privilege control.
 
 ## Instruction
 ### Project Structure (Recommended)

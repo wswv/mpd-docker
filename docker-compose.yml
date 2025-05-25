@@ -2,26 +2,23 @@
 version: '3.8'
 
 services:
-  mpd:
-    # Use 'build: .' to build the Dockerfile in the current directory
-    build: .
-    container_name: mpd_server
+  mpd-gdocker:
+    
+    image: mpd-docker:main
+    container_name: mpd-docker
     restart: unless-stopped
     ports:
-      - "6600:6600" # Host_Port:Container_Port
+      - "6600:6600" # 宿主机端口 6600 -> 容器端口 6600 (MPD 协议)
+      - "8000:8000" # 宿主机端口 8000 -> 容器端口 8000 (ympd Web UI)
 
     volumes:
-      # Music files (read-only)
       - ./music:/var/lib/mpd/music:ro
-      # MPD configuration file
       - ./config/mpd.conf:/etc/mpd/mpd.conf:ro
-      # Persistent data directories (read/write for MPD user)
       - ./data/playlists:/var/lib/mpd/playlists
       - ./data/database:/var/lib/mpd/database
       - ./data/log:/var/lib/mpd/log
       - ./data/state:/var/lib/mpd/state
       - ./data/sticker:/var/lib/mpd/sticker
 
-    # Optional: If you need to access specific host devices (e.g., sound card)
-    # devices:
-    #   - /dev/snd:/dev/snd # Uncomment and adjust if you need direct audio hardware access
+    # devices: # 如果需要访问宿主机音频设备
+    #   - /dev/snd:/dev/snd
