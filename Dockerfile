@@ -1,5 +1,5 @@
 # Dockerfile for mpd with non-root user
-FROM alpine:3
+FROM alpine
 MAINTAINER EasyPi Software Foundation
 
 # Create a dedicated group and user for mpd
