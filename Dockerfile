@@ -28,17 +28,16 @@ RUN set -xe \
     && cat /etc/apt/sources.list \
     && echo "--- /etc/apt/sources.list.d/ content ---" \
     && ls -l /etc/apt/sources.list.d/ \
-    \
     && echo "--- Attempting to install git ---" \
     && apt-get install -y --no-install-recommends git \
     && echo "--- git installation finished ---" \
-    \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # --- 调试步骤 3: 安装 MPD 及编译 myMPD 所需的其他依赖 ---
 # 现在 git 已经安装好了，这里安装其他编译工具和库。
 # 再次更新，确保其他包的最新信息
+# ... (这一整块 RUN 保持不变，并移除所有行间注释和空行)
 RUN set -xe \
     apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -57,8 +56,6 @@ RUN set -xe \
         libevent-dev \
         libuv1-dev \
         libz-dev \
-    \
-    # 清理 apt 缓存
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
