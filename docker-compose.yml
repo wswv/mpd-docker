@@ -1,0 +1,27 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mpd:
+    # Use 'build: .' to build the Dockerfile in the current directory
+    build: .
+    container_name: mpd_server
+    restart: unless-stopped
+    ports:
+      - "6600:6600" # Host_Port:Container_Port
+
+    volumes:
+      # Music files (read-only)
+      - ./music:/var/lib/mpd/music:ro
+      # MPD configuration file
+      - ./config/mpd.conf:/etc/mpd/mpd.conf:ro
+      # Persistent data directories (read/write for MPD user)
+      - ./data/playlists:/var/lib/mpd/playlists
+      - ./data/database:/var/lib/mpd/database
+      - ./data/log:/var/lib/mpd/log
+      - ./data/state:/var/lib/mpd/state
+      - ./data/sticker:/var/lib/mpd/sticker
+
+    # Optional: If you need to access specific host devices (e.g., sound card)
+    # devices:
+    #   - /dev/snd:/dev/snd # Uncomment and adjust if you need direct audio hardware access

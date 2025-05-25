@@ -1,0 +1,70 @@
+name: Build and Push Multi-Platform Docker Image to GHCR (Dev & Main)
+
+on:
+  push:
+    branches:
+      - main # 当代码推送到 main 分支时触发
+      - development # 当代码推送到 development 分支时触发
+  pull_request:
+    branches:
+      - main
+      - development
+
+env:
+  REGISTRY: ghcr.io # GHCR 的注册表地址
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest # 使用最新的 Ubuntu 运行器
+    permissions:
+      contents: read # 允许读取仓库内容
+      packages: write # 允许写入 GitHub Packages (GHCR)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # 检出代码
+
+      - name: Set up QEMU
+        # 这对于支持除 amd64/arm64 之外的更多架构至关重要
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        # 启用 Buildx，支持多平台构建和缓存
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3 # 登录到 GitHub Container Registry
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }} # GitHub Actions 运行者的用户名
+          password: ${{ secrets.GITHUB_TOKEN }} # GitHub 提供的自动令牌
+
+      - name: Extract Docker metadata
+        id: meta # 给这个步骤一个 ID
+        uses: docker/metadata-action@v5 # 自动生成 Docker 标签和标签
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }} # 镜像名称为 ghcr.io/所有者/仓库名
+          tags: |
+            type=ref,event=branch # 根据分支名称生成标签 (例如 main -> main, development -> development)
+            type=raw,value=latest,enable={{is_default_branch}} # 如果是默认分支 (通常是 main)，则额外生成 latest 标签
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.description=Multi-platform Docker image for ${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6 # 构建并推送 Docker 镜像
+        with:
+          context: . # Dockerfile 所在的上下文路径
+          # 指定所有需要的平台架构
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/arm/v7
+            linux/arm/v6
+            linux/mips64le
+          push: ${{ github.event_name == 'push' }} # 只有在 push 事件时才推送镜像
+          tags: ${{ steps.meta.outputs.tags }} # 使用上一步生成的标签
+          labels: ${{ steps.meta.outputs.labels }} # 使用上一步生成的标签
+          cache-from: type=gha # 开启 GitHub Actions 缓存
+          cache-to: type=gha,mode=max # 将构建缓存写入 GitHub Actions 缓存
