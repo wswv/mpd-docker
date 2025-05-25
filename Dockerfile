@@ -1,5 +1,5 @@
 # Dockerfile for MPD only on Debian Stable (Bookworm)
-FROM debian:stable-slim # <--- 将这一行从 debian:bookworm-slim 改为 debian:stable
+FROM debian:stable-slim
 
 
 ENV DEBIAN_FRONTEND=noninteractive
