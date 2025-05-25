@@ -1,12 +1,12 @@
 ## Introduction
 This docker image fork from https://github.com/vimagick/dockerfiles/blob/master/mpd/Dockerfile, by the help of Gemini AI.
-Here the new fork purpose to add more platform support, like Raspberry pi, mips, and privilege control.
+Here the new fork purpose to add more platform support, like Raspberry pi, mips, and have non-root privilege control.
 
 ## Instruction
 ### Project Structure (Recommended)
 
 Before creating the docker-compose.yml, let's set up a recommended directory structure on your host machine:
-
+```conf
 mpd-docker/
 ├── Dockerfile                  # Your Dockerfile (from the previous response)
 ├── docker-compose.yml          # The docker-compose file we're creating now
@@ -23,6 +23,7 @@ mpd-docker/
     ├── state/                  # MPD state file (mpdstate)
     └── sticker/                # MPD sticker database (sticker.sql)
 
+```
 ### config/mpd.conf (Example)
 
 Create this file inside the config directory. Ensure the paths inside are relative to the container's filesystem as previously discussed:
@@ -31,11 +32,16 @@ Ini, TOML
 # config/mpd.conf
 music_directory "/var/lib/mpd/music"
 playlist_directory "/var/lib/mpd/playlists"
-db_file "/var/lib/mpd/database/mpd.db"
-log_file "/var/lib/mpd/log/mpd.log"
-pid_file "/var/lib/mpd/state/mpd.pid"
-state_file "/var/lib/mpd/state/mpdstate"
-sticker_file "/var/lib/mpd/sticker/sticker.sql"
+db_file "/var/lib/mpd/database"
+log_file "/var/log/mpd/mpd.log"
+pid_file "/var/run/mpd/pid"
+state_file "/var/lib/mpd/state"
+sticker_file "/var/lib/mpd/sticker.sql"
+
+audio_output {
+    type "alsa"
+    name "My ALSA Device"
+}
 
 bind_to_address "0.0.0.0"
 port "6600"
@@ -62,31 +68,19 @@ Place this file in the mpd-docker/ root directory.
 ```YAML
 
 # docker-compose.yml
-version: '3.8'
-
 services:
   mpd:
-    # Use 'build: .' to build the Dockerfile in the current directory
-    build: .
-    container_name: mpd_server
-    restart: unless-stopped
+    image: ${DOCKERHUB_USERNAME}/mpd-custom:latest
+    container_name: mpd
     ports:
-      - "6600:6600" # Host_Port:Container_Port
-
+      - "6600:6600"
     volumes:
-      # Music files (read-only)
-      - ./music:/var/lib/mpd/music:ro
-      # MPD configuration file
-      - ./config/mpd.conf:/etc/mpd/mpd.conf:ro
-      # Persistent data directories (read/write for MPD user)
-      - ./data/playlists:/var/lib/mpd/playlists
-      - ./data/database:/var/lib/mpd/database
-      - ./data/log:/var/lib/mpd/log
-      - ./data/state:/var/lib/mpd/state
-      - ./data/sticker:/var/lib/mpd/sticker
+      - /path/to/your/music:/var/lib/mpd/music
+      - /path/to/your/playlists:/var/lib/mpd/playlists
+    environment:
+      - USER_UID=${USER_UID:-1000}
+      - USER_GID=${USER_GID:-1000}
+    restart: unless-stopped
 
-    # Optional: If you need to access specific host devices (e.g., sound card)
-    # devices:
-    #   - /dev/snd:/dev/snd # Uncomment and adjust if you need direct audio hardware access
 
 ```
