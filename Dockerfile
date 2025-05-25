@@ -19,8 +19,7 @@ RUN set -xe \
     useradd -u "${BUILD_UID}" -g "${MPD_GROUP}" -s /usr/sbin/nologin -m "${MPD_USER}"
 
 # --- 2: 更新软件包列表并安装 MPD 和基本客户端 ---
-RUN set -xe \
-    apt-get update --fix-missing \
+RUN apt-get update --fix-missing \
     && apt-get install -y --no-install-recommends \
         mpd \
         mpc \
