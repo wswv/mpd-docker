@@ -1,57 +1,39 @@
-# Dockerfile for MPD only on Debian Stable (Bookworm)
+# 使用debian:stable-slim作为基础镜像
 FROM debian:stable-slim
 
+# 设置默认的UID和GID，可通过构建参数覆盖
+ARG USER_UID=1000
+ARG USER_GID=1000
 
-ENV DEBIAN_FRONTEND=noninteractive
+# 安装必要的依赖和MPD相关工具
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    mpd \
+    mpc \
+    ncmpc \
+    ncmpcpp \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-ARG BUILD_UID=1000
-ARG BUILD_GID=1000
+# 创建非root用户和组
+RUN groupadd -g ${USER_GID} mpduser && \
+    useradd -u ${USER_UID} -g mpduser -m -s /bin/bash mpduser
 
-ENV MPD_USER=mpduser
-ENV MPD_GROUP=mpdusergroup
+# 创建MPD需要的目录并设置权限
+RUN mkdir -p /var/run/mpd /var/lib/mpd /var/log/mpd && \
+    chown -R mpduser:mpduser /var/run/mpd /var/lib/mpd /var/log/mpd
 
-# --- 1.1: 创建自定义 GID 的组 ---
-RUN groupadd -g "${BUILD_GID}" "${MPD_GROUP}"
+# 复制MPD配置文件
+COPY mpd.conf /etc/mpd.conf
 
-# --- 1.2: 创建自定义 UID 的用户，并将其加入到刚创建的组 ---
-RUN useradd -u "${BUILD_UID}" -g "${MPD_GROUP}" -s /usr/sbin/nologin -m "${MPD_USER}"
+# 设置工作目录
+WORKDIR /var/lib/mpd
 
-# --- 2: 更新软件包列表并安装 MPD 和基本客户端 ---
-RUN apt-get update --fix-missing \
-    && apt-get install -y --no-install-recommends \
-        mpd \
-        mpc \
-        ncmpc \
-        ncmpcpp \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# 切换到非root用户
+USER mpduser
 
-# --- 3: 更改 MPD 默认文件和目录的所有权 ---
-RUN chown -R "${MPD_USER}":"${MPD_GROUP}" /var/lib/mpd \
-    && chown -R "${MPD_USER}":"${MPD_GROUP}" /var/log/mpd \
-    && chown -R "${MPD_USER}":"${MPD_GROUP}" /run/mpd \
-    && mkdir -p /etc/mpd \
-    && chown -R "${MPD_USER}":"${MPD_GROUP}" /etc/mpd
-
-# --- 4: 创建并设置 MPD 额外数据目录的权限 ---
-RUN mkdir -p /var/lib/mpd/music \
-                /var/lib/mpd/playlists \
-                /var/lib/mpd/database \
-                /var/lib/mpd/state \
-                /var/lib/mpd/sticker
-
-# 复制 entrypoint 脚本到容器中，并赋予执行权限
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# 声明卷
-VOLUME /var/lib/mpd
-
-# 暴露 MPD 端口 (6600)
+# 暴露MPD默认端口
 EXPOSE 6600
 
-# 切换到自定义的非 root 用户。
-USER "${MPD_USER}"
-
-# 容器启动时执行 entrypoint 脚本
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# 设置容器启动命令
+CMD ["mpd", "--no-daemon", "/etc/mpd.conf"]
